@@ -1,0 +1,53 @@
+<script src="assets/js/config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/user.js"></script>
+<script src="assets/js/transaction.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Cek apakah user sudah login
+    if (!isAuthenticated()) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    try {
+      // Ambil data user
+      const user = await getProfile();
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userPhone').textContent = user.phone;
+
+      // Ambil saldo
+      const balance = await getBalance();
+      document.getElementById('balance').textContent = `Rp ${balance.balance.toLocaleString('id-ID')}`;
+
+      // Ambil riwayat transaksi
+      const transactions = await getTransactions();
+      const transactionList = document.getElementById('transactionList');
+      
+      transactions.forEach(transaction => {
+        const transactionElement = document.createElement('div');
+        transactionElement.className = 'transaction-item';
+        transactionElement.innerHTML = `
+          <div class="transaction-info">
+            <div class="transaction-type">${transaction.type}</div>
+            <div class="transaction-date">${new Date(transaction.createdAt).toLocaleDateString('id-ID')}</div>
+          </div>
+          <div class="transaction-amount ${transaction.sender._id === user._id ? 'text-red-500' : 'text-green-500'}">
+            ${transaction.sender._id === user._id ? '-' : '+'} Rp ${transaction.amount.toLocaleString('id-ID')}
+          </div>
+        `;
+        transactionList.appendChild(transactionElement);
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      // Redirect ke halaman login jika terjadi error
+      window.location.href = '/login.html';
+    }
+
+    // Handle logout
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      logout();
+    });
+  });
+</script> 

@@ -1,0 +1,81 @@
+<script src="assets/js/config.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/user.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Cek apakah user sudah login
+    if (!isAuthenticated()) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    try {
+      // Ambil data user
+      const user = await getProfile();
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userPhone').textContent = user.phone;
+
+      // Handle update profile
+      const updateProfileForm = document.getElementById('updateProfileForm');
+      const nameInput = document.getElementById('name');
+      const phoneInput = document.getElementById('phone');
+      const errorMessage = document.getElementById('errorMessage');
+
+      nameInput.value = user.name;
+      phoneInput.value = user.phone;
+
+      updateProfileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        try {
+          const name = nameInput.value;
+          const phone = phoneInput.value;
+
+          await updateProfile(name, phone);
+          
+          // Refresh halaman
+          window.location.reload();
+        } catch (error) {
+          errorMessage.textContent = error.message;
+          errorMessage.classList.remove('hidden');
+        }
+      });
+
+      // Handle change PIN
+      const changePinForm = document.getElementById('changePinForm');
+      const currentPinInput = document.getElementById('currentPin');
+      const newPinInput = document.getElementById('newPin');
+      const pinErrorMessage = document.getElementById('pinErrorMessage');
+
+      changePinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        try {
+          const currentPin = currentPinInput.value;
+          const newPin = newPinInput.value;
+
+          await changePin(currentPin, newPin);
+          
+          // Reset form
+          currentPinInput.value = '';
+          newPinInput.value = '';
+          pinErrorMessage.textContent = '';
+          pinErrorMessage.classList.add('hidden');
+        } catch (error) {
+          pinErrorMessage.textContent = error.message;
+          pinErrorMessage.classList.remove('hidden');
+        }
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      // Redirect ke halaman login jika terjadi error
+      window.location.href = '/login.html';
+    }
+
+    // Handle logout
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      logout();
+    });
+  });
+</script> 
